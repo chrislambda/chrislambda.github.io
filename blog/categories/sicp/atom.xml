@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Stack Unwinding]]></title>
-  <link href="http://chrislambda.github.io/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Sicp | Stack Unwinding]]></title>
+  <link href="http://chrislambda.github.io/blog/categories/sicp/atom.xml" rel="self"/>
   <link href="http://chrislambda.github.io/"/>
   <updated>2014-01-21T23:23:30-05:00</updated>
   <id>http://chrislambda.github.io/</id>
@@ -18,9 +18,9 @@
     <link href="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/"/>
     <updated>2014-01-20T17:18:10-05:00</updated>
     <id>http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating</id>
-    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I&rsquo;ll do some of the exercises and search online to see how my answers compared to others&#8217;.</p>
+    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I&rsquo;ll do some of the exercises and search online to see how my answers compared to others'.</p>
 
-<p>Because I didn&rsquo;t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others&#8217; much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong></p>
+<p>Because I didn&rsquo;t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others' much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong></p>
 
 <p>Here&rsquo;s the example that inspired me to write this post, from SICP:</p>
 
