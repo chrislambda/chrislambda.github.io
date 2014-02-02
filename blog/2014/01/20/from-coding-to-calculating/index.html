@@ -30,10 +30,46 @@
 <link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 <link href="http://fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
 
+<script type="text/x-mathjax-config">
+ MathJax.Hub.Config({
+ extensions: ["tex2jax.js","fp.js"],
+ jax: ["input/TeX", "output/HTML-CSS"],
+ tex2jax: {
+ inlineMath: [ ['$', '$'] ],
+ displayMath: [ ['$$', '$$']],
+ processEscapes: true,
+ skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+ },
+ messageStyle: "none",
+ "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] },
+ TeX: {extensions: ["xypic.js", "AMSmath.js","AMSsymbols.js"]}
+ });
+ </script>
+ <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?
+ config=TeX-AMS_HTML" type="text/javascript"></script>
+ <script src="/javascripts/fp.js" 
+ type="text/javascript"></script>
+ <script src="/javascripts/xypic.js" 
+ type="text/javascript"></script>
+
   
 
 </head>
 
+<script type="text/x-mathjax-config">
+	MathJax.Hub.Config({
+	  jax: ["input/TeX", "output/HTML-CSS"],
+	  tex2jax: {
+		  inlineMath: [ ['$', '$'] ],
+		  displayMath: [ ['$$', '$$']],
+		  processEscapes: true,
+		  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+		  },
+          messageStyle: "none",
+	 "HTML-CSS": { preferredFont: "TeX", availableFonts: ["STIX","TeX"] }
+  });
+  </script>
+  <script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" type="text/javascript"></script>
 <body   >
   <header role="banner"><hgroup>
   <h1><a href="/">Stack Unwinding</a></h1>
@@ -86,55 +122,70 @@
 
 <time datetime="2014-01-20T17:18:10-05:00" pubdate data-updated="true">Jan 20<span>th</span>, 2014</time>
         
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://chrislambda.github.io">Comments</a>
+        
       </p>
     
   </header>
 
 
-<div class="entry-content"><p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I&rsquo;ll do some of the exercises and search online to see how my answers compared to others&#8217;.</p>
+<div class="entry-content"><p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I’ll do some of the exercises and search online to see how my answers compared to others’.  </p>
 
-<p>Because I didn&rsquo;t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others&#8217; much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong></p>
+<p>Because I didn’t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others’ much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong> </p>
 
-<p>Here&rsquo;s the example that inspired me to write this post, from SICP:</p>
+<p>Here’s the example that inspired me to write this post, from SICP:
+&gt; <strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
 
-<blockquote><p><strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
+<blockquote>
+  <p>(define x (list (list 1 2) (list 3 4)))</p>
+</blockquote>
 
-<p>(define x (list (list 1 2) (list 3 4)))</p>
+<blockquote>
+  <p>(fringe x)</p>
+</blockquote>
 
-<p>(fringe x)</p>
+<blockquote>
+  <p>(1 2 3 4)</p>
+</blockquote>
 
-<p>(1 2 3 4)</p>
+<blockquote>
+  <p>(fringe (list x x))</p>
+</blockquote>
 
-<p>(fringe (list x x))</p>
+<blockquote>
+  <p>(1 2 3 4 1 2 3 4)</p>
+</blockquote>
 
-<p>(1 2 3 4 1 2 3 4)</p></blockquote>
+<p>If you’re not a Scheme user, this function takes something that looks like <code>((1 2) (3 4))</code> and gives something that looks like <code>(1 2 3 4)</code>.  It “gets the numbers out of the parentheses”.  The nifty thing about this function is that it will do this for arbitrarily-nested trees, not just one level deep.</p>
 
-<p>If you&rsquo;re not a Scheme user, this function takes something that looks like <code>((1 2) (3 4))</code> and gives something that looks like <code>(1 2 3 4)</code>.  It &ldquo;gets the numbers out of the parentheses&rdquo;.  The nifty thing about this function is that it will do this for arbitrarily-nested trees, not just one level deep.</p>
+<p>This function also shows up in Paul Graham’s <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, where it’s called <code>flatten</code>.  In <a href="http://letoverlambda.com/index.cl/guest/chap1.html#sec_3" title="Let Over Lambda">Let Over Lambda</a>, Doug Hoyte points out that since Lisp code is represented by Lisp trees, <code>flatten</code> performs code-walking.</p>
 
-<p>This function also shows up in Paul Graham&rsquo;s <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, where it&rsquo;s called <code>flatten</code>.  In <a href="http://letoverlambda.com/index.cl/guest/chap1.html#sec_3" title="Let Over Lambda">Let Over Lambda</a>, Doug Hoyte points out that since Lisp code is represented by Lisp trees, <code>flatten</code> performs code-walking.</p>
+<p>How do you solve a problem like this?  One way is to reason about the kinds of values your tree/list can be, and what your function should do with the tree/list when it assumes those values.  In Scheme, a list can represent a binary tree.  If <code>tr</code> is a tree, then <code>(car tr)</code> gives you the left branch and <code>(cdr tr)</code> gives you the right branch.  So thinking recursively, let’s say someone’s already <code>flatten</code>ed the left and right branch.  What now?  Well, just append the flattened-left branch to the flattened-right branch and you’re done.</p>
 
-<p>How do you solve a problem like this?  One way is to reason about the kinds of values your tree/list can be, and what your function should do with the tree/list when it assumes those values.  In Scheme, a list can represent a binary tree.  If <code>tr</code> is a tree, then <code>(car tr)</code> gives you the left branch and <code>(cdr tr)</code> gives you the right branch.  So thinking recursively, let&rsquo;s say someone&rsquo;s already <code>flatten</code>ed the left and right branch.  What now?  Well, just append the flattened-left branch to the flattened-right branch and you&rsquo;re done.</p>
-
-<p>I regard trees as being empty, being a leaf, or being a branch with two leaves.  We covered the latter case just above, so let&rsquo;s handle the other two:</p>
+<p>I regard trees as being empty, being a leaf, or being a branch with two leaves.  We covered the latter case just above, so let’s handle the other two:</p>
 
 <ul>
-<li><p>Empty, represented by the empty list <code>()</code>.  What does a flattened empty list look like?  That&rsquo;s right: just the empty list, so return that.</p></li>
-<li><p>A leaf. We want the function to return a list though, so return a list containing this value (i.e., wrap it in parentheses).</p></li>
+  <li>
+    <p>Empty, represented by the empty list <code>()</code>.  What does a flattened empty list look like?  That’s right: just the empty list, so return that.</p>
+  </li>
+  <li>
+    <p>A leaf. We want the function to return a list though, so return a list containing this value (i.e., wrap it in parentheses).</p>
+  </li>
 </ul>
 
-
-<p>That&rsquo;s all three cases!  Here&rsquo;s a naive solution in Common Lisp:</p>
+<p>That’s all three cases!  Here’s a naive solution in Common Lisp:</p>
 
 <pre><code>(defun flatten (tree)
-    (cond ((null tree) nil)
-          ((atom tree) (cons tree nil))
-          (t (append (flatten (car tree))
-                 (flatten (cdr tree))))))
+	(cond ((null tree) nil)
+	      ((atom tree) (cons tree nil))
+	      (t (append (flatten (car tree))
+		         (flatten (cdr tree))))))
 </code></pre>
 
 <p><a href="http://izquotes.com/quote/276282" title="Lisp has all the visual appeal of oatmeal with fingernail clippings mixed in. -Larry Wall">Lisp code, so beautiful!</a> Here, <code>null</code> tests for the empty list and <code>atom</code> tests to see if the tree is a leaf.</p>
 
-<p>This is all well and good, and it satisfies the test cases from SICP. But if you search for other answers to this question, or even look at the definition in <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, there&rsquo;s one that looks a bit different:</p>
+<p>This is all well and good, and it satisfies the test cases from SICP. But if you search for other answers to this question, or even look at the definition in <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, there’s one that looks a bit different:</p>
 
 <pre><code>(defun flatten (tree)
    (labels ((rec (x acc)
@@ -144,13 +195,13 @@
     (rec tree nil)))
 </code></pre>
 
-<p>Here, <code>labels</code> introduces a local helper function in Common Lisp called <code>rec</code> that takes an accumulator.  Except for this, it appears to be of the same &ldquo;form&rdquo; as the naive solution.  It&rsquo;s not immediately obvious to me how this second solution is equivalent to the first one.  Even though I understood the logic of the second solution, I don&rsquo;t think I would have come up with it on my own, even though I&rsquo;m familiar with the accumulator technique.</p>
+<p>Here, <code>labels</code> introduces a local helper function in Common Lisp called <code>rec</code> that takes an accumulator.  Except for this, it appears to be of the same “form” as the naive solution.  It’s not immediately obvious to me how this second solution is equivalent to the first one.  Even though I understood the logic of the second solution, I don’t think I would have come up with it on my own, even though I’m familiar with the accumulator technique.  </p>
 
-<p>I wanted to not have to be clever.  Even more, I wanted to be able to prove the equivalence of <em>any</em> other version of this function.  What I wanted was to <em>derive</em> these equivalences in the same way I proved theorems in geometry or performed manipulations in algebra.</p>
+<p>I wanted to not have to be clever.  Even more, I wanted to be able to prove the equivalence of <em>any</em> other version of this function.  What I wanted was to <em>derive</em> these equivalences in the same way I proved theorems in geometry or performed manipulations in algebra.  </p>
 
 <p>Enter Haskell.</p>
 
-<p>I had been reading about Haskell here and there, and I appreciated that you could reason about programs, even <em>calculate</em> them.  This is the method described in the book <a href="http://www.amazon.com/Algebra-Programming-Prentice-Hall-International-Computer/dp/013507245X" title="Algebra of Programming">Algebra of Programming</a>, which uses the Gofer language, an ancestor of Haskell.  So I&rsquo;ll recast this in Haskell because its syntax is ultra-clean.  First, let&rsquo;s roll out our own tree data type:</p>
+<p>I had been reading about Haskell here and there, and I appreciated that you could reason about programs, even <em>calculate</em> them.  This is the method described in the book <a href="http://www.amazon.com/Algebra-Programming-Prentice-Hall-International-Computer/dp/013507245X" title="Algebra of Programming">Algebra of Programming</a>, which uses the Gofer language, an ancestor of Haskell.  So I’ll recast this in Haskell because its syntax is ultra-clean.  First, let’s roll out our own tree data type:</p>
 
 <pre><code>data Tree a = Empty | Leaf a | Branch (Tree a) (Tree a)
 </code></pre>
@@ -163,19 +214,19 @@ flatten (Leaf a) = [a]
 flatten (Branch l r) = flatten l ++ flatten r
 </code></pre>
 
-<p>Here, <code>[a]</code> means a list with one value in it, and <code>++</code> means &ldquo;append&rdquo;.  The declaration at the top tells us this function takes a <code>Tree</code> holding values of type <code>a</code> and returns a list.  Here&rsquo;s an example of the function in action:</p>
+<p>Here, <code>[a]</code> means a list with one value in it, and <code>++</code> means “append”.  The declaration at the top tells us this function takes a <code>Tree</code> holding values of type <code>a</code> and returns a list.  Here’s an example of the function in action:</p>
 
 <pre><code>flatten (Branch (Branch (Leaf 2) (Branch (Branch (Leaf 11) (Empty)) (Leaf 7))) (Leaf 4))
 [2,11,7,4]
 </code></pre>
 
-<p>To make this look more like the second solution, let&rsquo;s use the accumulator technique, the benefits of which I&rsquo;ll go over in another post.  So we define a helper function, <code>flat_helper</code>, that takes an accumulator as its second value:</p>
+<p>To make this look more like the second solution, let’s use the accumulator technique, the benefits of which I’ll go over in another post.  So we define a helper function, <code>flat_helper</code>, that takes an accumulator as its second value:</p>
 
 <pre><code>flat_helper :: Tree a -&gt; [a] -&gt; [a]
 flat_helper tree list = flatten tree ++ list
 </code></pre>
 
-<p>We flatten <code>tree</code>, and then push the result onto <code>list</code>. I chose this form to &ldquo;accumulate&rdquo; the result into <code>list</code>.  We can achieve our final result as follows:</p>
+<p>We flatten <code>tree</code>, and then push the result onto <code>list</code>. I chose this form to “accumulate” the result into <code>list</code>.  We can achieve our final result as follows:</p>
 
 <pre><code>flat_helper tree [] = flatten tree ++ [] = flatten tree
 </code></pre>
@@ -208,11 +259,12 @@ flatten l ++ flat_helper r lst =
 flat_helper l (flat_helper r lst)
 </code></pre>
 
-<p>Et voila!  This is the same code from the second solution written in Haskell.  I derived one solution from the other in a way that&rsquo;s almost mathematical.  It turns out that it&rsquo;s more efficient than the naive solution, and we don&rsquo;t even need to use <code>++</code>.  I wish I could learn from programs like this all the time.</p>
+<p>Et voila!  This is the same code from the second solution written in Haskell.  I derived one solution from the other in a way that’s almost mathematical.  It turns out that it’s more efficient than the naive solution, and we don’t even need to use <code>++</code>.  I wish I could learn from programs like this all the time.  </p>
 
 <p>I based the above derivation from a chapter in <a href="http://www.amazon.com/Introduction-Functional-Programming-Haskell-Edition/dp/0134843460/" title="Introduction to Functional Programming in Haskell">Introduction to Functional Programming in Haskell</a>, which has several more derivations like the above (I used their bracket comment notation). They called it <em>synthesizing</em> the program, which is a good way to think about it.</p>
 
-<p>I started out using computers to do work I would find tedious or unfeasible to do on my own&mdash;iterating over millions of variables, or printing a report every hour.  Now I can use them to help me think about computers.  A lot of fun for one problem in SICP, I&rsquo;d say!</p>
+<p>I started out using computers to do work I would find tedious or unfeasible to do on my own–iterating over millions of variables, or printing a report every hour.  Now I can use them to help me think about computers.  A lot of fun for one problem in SICP, I’d say!</p>
+
 </div>
 
 
@@ -249,9 +301,13 @@ flat_helper l (flat_helper r lst)
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/" data-via="" data-counturl="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/" data-via="lambda_jones" data-counturl="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/" >Tweet</a>
   
   
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
   
 </div>
 
@@ -259,9 +315,17 @@ flat_helper l (flat_helper r lst)
     <p class="meta">
       
       
+        <a class="basic-alignment right" href="/blog/2014/01/30/catamorphisms-in-15-minutes/" title="Next Post: Catamorphisms in 15 Minutes!">Catamorphisms in 15 Minutes! &raquo;</a>
+      
     </p>
   </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -270,6 +334,10 @@ flat_helper l (flat_helper r lst)
     <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/01/30/catamorphisms-in-15-minutes/">Catamorphisms in 15 Minutes!</a>
+      </li>
     
       <li class="post">
         <a href="/blog/2014/01/20/from-coding-to-calculating/">From Coding to Calculating</a>
@@ -296,9 +364,42 @@ flat_helper l (flat_helper r lst)
 </footer>
   
 
+<script type="text/javascript">
+      var disqus_shortname = 'stackunwinding';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/';
+        var disqus_url = 'http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
 
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
 
 
 

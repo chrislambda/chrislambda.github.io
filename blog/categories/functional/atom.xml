@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Functional | Stack Unwinding]]></title>
   <link href="http://chrislambda.github.io/blog/categories/functional/atom.xml" rel="self"/>
   <link href="http://chrislambda.github.io/"/>
-  <updated>2014-01-21T23:23:30-05:00</updated>
+  <updated>2014-02-01T22:21:17-05:00</updated>
   <id>http://chrislambda.github.io/</id>
   <author>
     <name><![CDATA[Chris Jones]]></name>
@@ -14,54 +14,291 @@
 
   
   <entry>
+    <title type="html"><![CDATA[Catamorphisms in 15 Minutes!]]></title>
+    <link href="http://chrislambda.github.io/blog/2014/01/30/catamorphisms-in-15-minutes/"/>
+    <updated>2014-01-30T20:53:57-05:00</updated>
+    <id>http://chrislambda.github.io/blog/2014/01/30/catamorphisms-in-15-minutes</id>
+    <content type="html"><![CDATA[<p>Let’s say you have a list of numbers.  What can you do with it?  Find its length, map a function over it, add them up, etc. Wouldn’t it be great if there were <em>one function to rule them all</em>, a function that generalizes what you can do with a list?  In many languages, there is a higher-order function called <code>fold</code> that encapsulates a pattern of <strong>structural recursion</strong> over recursive structures: to specify a function on a list, you specify two exhaustive cases: what to do to an empty list, and what to do with any other list.  A generalization of <em>this</em> generalization is the notion of a catamorphism, which is what I’m writing about today.  </p>
+
+<p>Since catamorphisms are so general, this is really going to be a whirlwind tour through category theory, winding up talking about catas near the end.  This is all non-rigorous and hand-wavey, but I hope you can at least hear these concepts later and they make a little bit of sense.</p>
+
+<p>There are many resources about <code>fold</code> (see <a href="http://www.cs.nott.ac.uk/~gmh/fold.pdf" title="A tutorial on the universality and expressiveness of fold">Graham Hutton’s tutorial</a> and catamorphisms (see, for example, <a href="https://www.fpcomplete.com/user/edwardk/recursion-schemes/catamorphisms" title="Edward Kmett's knol">Edward Kmett’s knol</a>).  I wanted to slightly expand on some elementary details from these works.  So let’s jump in!</p>
+
+<h3 id="the-shortest-category-theory-tutorial-in-the-world">The Shortest Category Theory Tutorial in the World</h3>
+
+<p>A category consists of:</p>
+
+<ul>
+  <li>a collection of <em>objects</em>, such as <script type="math/tex">A, B, C</script>, and</li>
+  <li><em>arrows</em> or <em>morphisms</em>, such as <script type="math/tex">f: A \rightarrow B</script>, between objects.  You can read this as “<script type="math/tex">f</script> is an arrow from <script type="math/tex">A</script> to <script type="math/tex">B</script>”.</li>
+</ul>
+
+<p>In addition to this structure, objects and arrows must satisfy the following properties:</p>
+
+<ul>
+  <li>If <script type="math/tex">f: A \rightarrow B</script> and <script type="math/tex">g: B \rightarrow C</script>, then there must be an arrow from <script type="math/tex">A</script> to <script type="math/tex">C</script>.  This arrow is the <em>composition</em> of <script type="math/tex">f</script> and <script type="math/tex">g</script> and is written <script type="math/tex">g \circ f</script>.</li>
+  <li>For each object <script type="math/tex">A</script>, there is an <em>identity arrow</em> from <script type="math/tex">A</script> to itself: <script type="math/tex">id: A \rightarrow A</script>.</li>
+</ul>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+	\begin{xy}
+	\xymatrix {
+	  A \ar@(ur,ul)[] \ar[r]^f \ar[dr]_{g \circ f} & B \ar@(ur,ul)[] \ar[d]^g \\
+    	  & C \ar@(dr,dl)[]
+	  }
+	  \end{xy}
+ %]]&gt;</script>
+
+<p>Both of these requirements are shown in the diagram.  Each object has an (unlabeled) identity arrow.  Notice how I can get from <script type="math/tex">A</script> to <script type="math/tex">C</script> by either going from <script type="math/tex">A</script> to <script type="math/tex">B</script> and then from <script type="math/tex">B</script> to <script type="math/tex">C</script>, or going “directly” there with the composed arrow.  This “doesn’t matter which path you take” property of the diagram is called <em>commutation</em>, and so this diagram <em>commutes</em>.  Diagrams in category theory are paper tools: they summarize whole paragraphs of proofs in one, maybe complicated figure.</p>
+
+<p>Composition must be <em>associative</em>, which means <script type="math/tex">(h \circ g) \circ f = h \circ (g \circ f)</script>.  So we can ignore the parentheses!  The identity arrows take an arrow back to itself: <script type="math/tex">id_A \circ f = f</script> and <script type="math/tex">f = f \circ id_B</script> if $f: A \rightarrow B$.</p>
+
+<p>There.  Now you know what category theory is.  It’s useful because lots of mathematical structures are categories, like sets, groups, algebras, and so on.  </p>
+
+<p>Pro tip: whenever I think of a category, I pretend that I’m really talking about sets to get some intuiton.  In the category of sets, set elements are the objects and regular old functions / mappings are the arrows.  Beware though: in general, arrows don’t always behave like functions!</p>
+
+<p>Surround your pullquote like this {" text to be quoted "}</p>
+
+<h3 id="functors">Functors</h3>
+
+<p>The name “functor” has always sounded like a villain from a sci-fi novel, which probably explains why I find them so interesting.  </p>
+
+<p>I already mentioned what a category was.  What would happen if I could make some kind of mapping <em>between</em> categories?  Whoa.  I know, amazing, right?  This mapping is called a functor and it transforms a diagram into another diagram.  </p>
+
+<p>The neat thing is, even if the objects in the mapped category are completely different from the original category, the <em>structure</em> of the functor’d category is the same as the original’s.  I’ve just described a <em>homomorphism</em>, which is a mapping that preserves structure (it means “same form” in Greek).  Since a functor acts on a whole category, you have to describe its action on both objects and arrows.  Let <script type="math/tex">\textbf{F}: \textbf{A} \rightarrow \textbf{B}</script> be a functor from category <script type="math/tex">\textbf{A}</script> to category <script type="math/tex">\textbf{B}</script>.  Then:</p>
+
+<ul>
+  <li><script type="math/tex">g: A \rightarrow B</script> gets mapped to <script type="math/tex">\textbf{F} g: \textbf{F} A \rightarrow \textbf{F} B</script></li>
+  <li><script type="math/tex">A,B,...</script> get mapped to <script type="math/tex">\textbf{F} A, \textbf{F} B, ...</script></li>
+</ul>
+
+<p>Everyone uses the same symbol to refer to both the arrow mapping and the object mapping.  The functor laws analogous to the requirements of a category are:</p>
+
+<ul>
+  <li><script type="math/tex">\textbf{F}(id_A) = id_{\textbf{F}A}</script> for all objects $A$</li>
+  <li><script type="math/tex">\textbf{F}(f \circ g) = \textbf{F}f \circ \textbf{F}g</script> for all arrows $f$ and $g$.</li>
+</ul>
+
+<p>Or, in diagrams (adapted from the <a href="http://sonoisa.github.io/xyjax/xyjax.html" title="XyJax">XyJax</a> page):</p>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+\begin{xy}
+\xymatrix {
+	A \ar[r]^f \ar[dr]_{g \circ f} & B \ar[d]^g & \ar@{~>}[r]^F & & FA \ar[r]^{Ff} \ar[dr]_*[l]{\scriptstyle F(g\circ f) = Fg\circ Ff} & FB \ar[d]^{Fg} \\
+			  & C && && FC
+}
+\end{xy}
+ %]]&gt;</script>
+
+<p>Gorgeous.  Let’s say what a functor is one more time: a homomorphism between categories.</p>
+
+<p>If you program in Haskell, you’ve probably already heard of its <code>Functor</code> typeclass, which has the following definition:</p>
+
+<pre><code>class Functor f where
+	fmap :: (a -&gt; b) -&gt; f a -&gt; f b
+</code></pre>
+
+<p>This means that when you create a functor in Haskell, you need to define what the <code>fmap</code> function does, and from its signature, I see that it takes functions of type $A \rightarrow B$ to $\textbf{F}A \rightarrow \textbf{F}B$, similar to what we discussed above.  See the discussion in <a href="http://learnyouahaskell.com/making-our-own-types-and-typeclasses#the-functor-typeclass" title="I love the functor robot on this page.">Learn You A Haskell</a> for more functor fun.</p>
+
+<p>From these dizzying heights of thinking, let’s think about <em>special</em> objects or functors that will be useful in the goal of generally processing data types like lists as mentioned earlier.</p>
+
+<h3 id="initial-objects">Initial Objects</h3>
+
+<p>In some categories, you can imagine that there are some objects that are in some sense “unspecified” or “empty”.  These objects are special, like <code>{}</code>, the empty set (the set with the least amount of useful information), or the empty list.  These objects share the trait of being unique: there’s only one empty set, only one number such that when you add it to any other number, you get that number back (zero), and so on.  In category theory, we can think of this trait more generally, where it’s called <strong>initiality</strong>.  The term “initial” makes sense to me since I think of the category of sets “starting off” with the empty set, for example.</p>
+
+<p>An object is initial if, for any object in the category, there is only one mapping from it to that object.  I’ll call the initial object in a category $\textbf{0}$.  So in other words, for an object $A$, there is only one arrow of the form $\textbf{0} \rightarrow A$.</p>
+
+<p>Can there be more than one initial object?  Let’s pretend the answer is yes and see what that would imply.  Let $\textbf{0}$ and $\textbf{0’}$ be initial objects.  Then there’s an arrow <script type="math/tex">f: \textbf{0} \rightarrow \textbf{0'}</script> and <script type="math/tex">g: \textbf{0'} \rightarrow \textbf{0}</script>:</p>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+\begin{xy}
+\xymatrix{
+	0 \ar@/^/[r]^f & 0' \ar@/^/[l]^g  \\
+}
+\end{xy}
+ %]]&gt;</script>
+
+<p>From the diagram, it’s clear that starting from $f$ and coming back through $g$ is a function from $\textbf{0}$ to itself: $g \circ f: \textbf{0} \rightarrow \textbf{0}$.  But here’s the trick: since $\textbf{0}$ is initial, there’s only one object from it to any object–including $\textbf{0}$! </p>
+
+<p>So we have that <script type="math/tex">g \circ f = id_\textbf{0}</script> (this is the identity arrow for $\textbf{0}$).  I could have started with $\textbf{0’}$ instead, and we would have gotten <script type="math/tex">f \circ g = id_\textbf{0'}</script>.  So $\textbf{0}$ and $\textbf{0’}$ are basically the same object; the technical term is that they are <em>isomorphic</em>, which means “equal form”.  Isomorphisms are sort of like the category-theoretic version of equality.</p>
+
+<p>How does all this help us with our goal of understanding structural recursion and recursive structures?  Well, the uniqueness of initial objects (up to isomorphism) is similar to a uniqueness proof: if we come up with some function or procedure on a list, we want to know that it’s <em>the</em> solution (or at least how many there are, even if it’s zero).  Functors give us the notion taking a data type to another data type.  Let’s combine initial objects and functors and get: F-algebras and catamorphisms!</p>
+
+<h3 id="mighty-catamorphisms">Mighty Catamorphisms</h3>
+
+<p>I very much hope the title of this section made you think of a <a href="http://en.wikipedia.org/wiki/Mighty_Morphin_Power_Rangers" title="Go! Go! Power Rangers!">certain 90’s kid’s show</a>.  You’re welcome.</p>
+
+<p>Here’s an example of a recursive structure: non-negative integers!  Yes, ever since you learned to count, you’ve been thinking recursively.  Good for you!  So a non-negative integer is one of two things: zero, or 1 plus another non-negative integer.  Or in Haskell, you could write:</p>
+
+<pre><code>data NonNeg = Zero | OnePlus NonNeg
+</code></pre>
+
+<p>So what does “2” look like here?  Did you guess <code>OnePlus(OnePlus Zero)</code>?  Great!  We can reason this through since 2 is either 0 (nope) or 1 plus another number.  Well what’s 1?  Either 0 (nope again) or 1 plus another number 0.  Well what’s 0?  Either 0–yep! And now we’re done.  </p>
+
+<p>Now, I wouldn’t want to represent the number 839921 like this, but it shows that we can define a useful structure recursively–and sometimes, this may be the best way to do so.</p>
+
+<p>Say, now that I think about it, <code>NonNeg</code> is an example of a category!  What we’re interested in is some kind of transformation from this category to itself, and by “transformation” I mean “functor”.  A functor that maps a category into itself is called an <strong>endofunctor</strong> (endo- meaning “inside” in Greek).</p>
+
+<p>But we want a little more than that.  In the example involving “2” above, we wanted to transform it into either 0 or 1 plus another number.  Or if you’re doing addition, we want an mapping that takes pairs of numbers into another number.  So we need arrows with signatures like: <script type="math/tex">\textbf{F}A \rightarrow A</script>, where $A$ here could mean a type, like natural numbers with addition, or <code>NonNeg</code>.  </p>
+
+<p>Congrats!  You’ve just learned what an <em>F-algebra</em> is: an arrow with type <script type="math/tex">\textbf{F}A \rightarrow A</script>.</p>
+
+<p>By now, you know what I’m going to wonder: do F-algebras themselves form a category, where the objects are F-algebras?  Well, we need to determine what the arrows are (and don’t forget that an F-algebra is itself an arrow…).  </p>
+
+<p>Let <script type="math/tex">\textbf{C}</script> be a category, and let <script type="math/tex">\textbf{F}: \textbf{C} \rightarrow \textbf{C}</script> be an endofunctor.  If $A$ and $B$ are two objects in <script type="math/tex">\textbf{C}</script>, then we have two F-algebras, <script type="math/tex">f: \textbf{F}A \rightarrow A</script> and <script type="math/tex">g: \textbf{F}B \rightarrow B</script>.  Let’s define a mapping between $A$ and $B$: $z: A \rightarrow B$.  So far, we can summarize all these crazy arrows in a diagram:</p>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+	\begin{xy}
+	\xymatrix {
+		\textbf{F}B \ar[r]^g & B  \\
+		\textbf{F}A \ar[u]^{\textbf{F}z} \ar[r]^f & A \ar[u]_z
+	}
+	\end{xy}
+ %]]&gt;</script>
+
+<p>I added the action of $\textbf{F}$ on $z$ already.  Now, if this diagram is to commute, both paths from <script type="math/tex">\textbf{F}A</script> to <script type="math/tex">B</script> have to be equal; in other words:</p>
+
+<script type="math/tex; mode=display"> g \circ \textbf{F}z = z \circ f </script>
+
+<p>If $z$ satisfies this equation, it’s called an <em>F-homomorphism</em> since it preserves the structure of the F-algebra.</p>
+
+<p>Now, since the identity arrow is a homomorphism, and composing two homomorphisms gives another homomorphism, that means that F-algebras themselves form a category.  Here’s where it gets interesting.  For a general class of functor, this category of F-algebras has an initial object–an initial algebra.  I’ll choose <script type="math/tex">\alpha</script> for the initial algebra: <script type="math/tex">\alpha: \textbf{F}A \rightarrow A</script>.</p>
+
+<p>So now we have the same diagram as above, except I’ll label with the initial algebra:</p>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+	\begin{xy}
+	\xymatrix {
+		\textbf{F}B \ar[r]^g & B  \\
+		\textbf{F}A \ar[u]^{\textbf{F}g^\star} \ar[r]^\alpha & A \ar[u]_{g^\star}
+	}
+	\end{xy}
+ %]]&gt;</script>
+
+<p>And there it is!  The <strong>catamorphism</strong>, which I’ve labeled as $g^\star$, is the unique homomorphism from the initial algebra to any other F-algebra.  In the <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.41.125" title="Functional Programming with Bananas, Lenses, and Barbed Wire">bananas, lenses, and barbed wire</a> paper, it’s defined with banana brackets, which I don’t know how to generate.  Oh well!  Its definition is:</p>
+
+<script type="math/tex; mode=display">g^\star \circ \alpha = g \circ \textbf{F}g^\star</script>
+
+<p>That’s…very abstract.  How is this useful?  The utility here comes from thinking of the initial algebra as a data type.  Let’s pick one: lists in Haskell.  A list of type $A$ is either the empty list or a value of type $A$ attached (<code>cons</code>‘ed, if you will) to the back of a list.  In other words:</p>
+
+<pre><code>data List a = Nil | Cons a (List a)
+</code></pre>
+
+<p>This will be our <script type="math/tex">\alpha</script>.  More explicitly, we can write the endofunctor as <script type="math/tex">\alpha: 1 + A \times X \rightarrow X</script>.  Here, $1$ represents the empty list, and $A \times X$ represents the Cartesian product of a type $A$ connected to a type $X$, or the non-empty list, and $+$ is a disjoint sum, sort of like the <code>|</code> in Haskell. Equations like <script type="math/tex">\textbf{F}A \rightarrow A</script> are awesome because they imply that F-algebras encode a notion of <em>self-similarity</em>, like a fractal.  In fact, there is a correspondence between these data types and <em>least fixed points</em>; for more on this, check out the great article at <a href="https://www.fpcomplete.com/user/bartosz/understanding-algebras" title="Understanding F-Algebras">FP Complete</a>.</p>
+
+<p><strong>Fun fact</strong>: The term catamorphism was coined by Lambert Meertens.  The “cata” in “catamorphism”, according to <a href="http://cgi.csc.liv.ac.uk/~grant/PS/thesis.pdf" title="Grant Malcolm's Ph.D. thesis">Grant Malcolm</a>, supposedly means “according to” or “following”, so a catamorphism “follows” the structure of the data type.  On the other hand, it could also mean “downward”, like “catabolic” or “catastrophic”, and a catamorphism does “plunge into” a data structure.  <a href="http://en.wiktionary.org/wiki/%CE%BA%CE%B1%CF%84%CE%AC" title="What's 'cata' mean?">Since it could mean either</a>, but the former is the primary meaning, let’s go with that!</p>
+
+<p>So now we can define a mapping from the initial algebra <script type="math/tex">\alpha</script> and, say, the natural numbers.  We can define the length of a list, a function from lists to integers.  Because a catamorphism is a homomorphism, it will preserve the structure of the list type; our function needs to figure out what to map <code>Nil</code> to (in <code>length</code>’s case, 0), and what to map <code>Cons</code> to (in this case, addition).  Because a catamorphism is a mapping from an initial algebra, we thus know that it’s the <em>unique</em> solution. </p>
+
+<p>Thus, if we have the following two equations to solve:</p>
+
+<pre><code>z Nil = c
+z (Cons a as) = f a (z as)
+</code></pre>
+
+<p>where we transform <code>Nil</code> to <code>c</code> and <code>Cons</code> to <code>f</code> (both binary functions), then we immediately know that <code>z</code> is a catamophism, and the unique solution to those equations is given by the catamorphism diagram above. In fact, functional programmers are already familiar with this function: it’s just good ol’ <code>foldr</code> in Haskell:</p>
+
+<pre><code>z = foldr f c
+</code></pre>
+
+<h3 id="fusion-techniques">Fusion Techniques!</h3>
+
+<p>So we’ve discussed catamorphisms on lists, and the definition generalizes to any category where we can define an initial algebra: the natural numbers, binary trees, multiway trees; the sky is the limit.  The catamorphism will look different with other data types, but its definition is the same.  This is why category theory is useful–do a lot of abstract work once and watch it pay off again and again.</p>
+
+<p>Probably the most useful thing about catamorphisms, though, is <em>fusion</em>, when you can combine a mapping with a catamorphism and get another catamorphism.  This could, for example, make a computation more efficient, or make intermediate transformations in a compiler more efficient.</p>
+
+<p>You know what?  By now, you’re a pro at reading diagrams, so let’s look at the one that represents fusion:</p>
+
+<script type="math/tex; mode=display">% &lt;![CDATA[
+
+	\begin{xy}
+	\xymatrix {
+		\textbf{F}C \ar[r]^f & C \\
+		\textbf{F}B \ar[u]^{\textbf{F}h} \ar[r]^g & B \ar[u]_{h} \\
+		\textbf{F}A \ar[u]^{\textbf{F}g^\star} \ar[r]^\alpha & A \ar[u]_{g^\star} \ar@/_2pc/[uu]_{f^\star}
+	}
+	\end{xy}
+ %]]&gt;</script>
+
+<p>The bottom square commutes and is the same one as before.  The upper square defines another F-homomorphism.  If both squares commute, the whole rectangle commutes.  The fusion law is immediately read off from the diagram:</p>
+
+<script type="math/tex; mode=display"> f^\star = h \circ g^\star </script>
+
+<p>This fuses two separate operations into one–it folds two folds into one!</p>
+
+<h3 id="further-reading">Further Reading</h3>
+
+<p>Okay, so that was probably more than 15 minutes of reading.  But now you can dive deeper into any of the sources listed throughout this post.   A lot of the literature is in the realm of <a href="http://cgi.csc.liv.ac.uk/~grant/PS/thesis.pdf" title="Grant Malcolm's Ph.D. thesis">theses</a>, <a href="http://homepages.inf.ed.ac.uk/wadler/papers/free-rectypes/free-rectypes.txt" title="Recursive Types for Free!">drafts</a>, and <a href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.41.125" title="Functional Programming with Bananas, Lenses, and Barbed Wire">papers</a> with the notable exception of <a href="http://www.amazon.com/Algebra-Programming-Prentice-Hall-International-Computer/dp/013507245X" title="Algebra of Programming">Algebra of Programming</a>, which I drew heavily upon in writing this.  I highly recommend that last one!</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[From Coding to Calculating]]></title>
     <link href="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/"/>
     <updated>2014-01-20T17:18:10-05:00</updated>
     <id>http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating</id>
-    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I&rsquo;ll do some of the exercises and search online to see how my answers compared to others'.</p>
+    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I’ll do some of the exercises and search online to see how my answers compared to others’.  </p>
 
-<p>Because I didn&rsquo;t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others' much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong></p>
+<p>Because I didn’t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others’ much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong> </p>
 
-<p>Here&rsquo;s the example that inspired me to write this post, from SICP:</p>
+<p>Here’s the example that inspired me to write this post, from SICP:
+&gt; <strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
 
-<blockquote><p><strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
+<blockquote>
+  <p>(define x (list (list 1 2) (list 3 4)))</p>
+</blockquote>
 
-<p>(define x (list (list 1 2) (list 3 4)))</p>
+<blockquote>
+  <p>(fringe x)</p>
+</blockquote>
 
-<p>(fringe x)</p>
+<blockquote>
+  <p>(1 2 3 4)</p>
+</blockquote>
 
-<p>(1 2 3 4)</p>
+<blockquote>
+  <p>(fringe (list x x))</p>
+</blockquote>
 
-<p>(fringe (list x x))</p>
+<blockquote>
+  <p>(1 2 3 4 1 2 3 4)</p>
+</blockquote>
 
-<p>(1 2 3 4 1 2 3 4)</p></blockquote>
+<p>If you’re not a Scheme user, this function takes something that looks like <code>((1 2) (3 4))</code> and gives something that looks like <code>(1 2 3 4)</code>.  It “gets the numbers out of the parentheses”.  The nifty thing about this function is that it will do this for arbitrarily-nested trees, not just one level deep.</p>
 
-<p>If you&rsquo;re not a Scheme user, this function takes something that looks like <code>((1 2) (3 4))</code> and gives something that looks like <code>(1 2 3 4)</code>.  It &ldquo;gets the numbers out of the parentheses&rdquo;.  The nifty thing about this function is that it will do this for arbitrarily-nested trees, not just one level deep.</p>
+<p>This function also shows up in Paul Graham’s <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, where it’s called <code>flatten</code>.  In <a href="http://letoverlambda.com/index.cl/guest/chap1.html#sec_3" title="Let Over Lambda">Let Over Lambda</a>, Doug Hoyte points out that since Lisp code is represented by Lisp trees, <code>flatten</code> performs code-walking.</p>
 
-<p>This function also shows up in Paul Graham&rsquo;s <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, where it&rsquo;s called <code>flatten</code>.  In <a href="http://letoverlambda.com/index.cl/guest/chap1.html#sec_3" title="Let Over Lambda">Let Over Lambda</a>, Doug Hoyte points out that since Lisp code is represented by Lisp trees, <code>flatten</code> performs code-walking.</p>
+<p>How do you solve a problem like this?  One way is to reason about the kinds of values your tree/list can be, and what your function should do with the tree/list when it assumes those values.  In Scheme, a list can represent a binary tree.  If <code>tr</code> is a tree, then <code>(car tr)</code> gives you the left branch and <code>(cdr tr)</code> gives you the right branch.  So thinking recursively, let’s say someone’s already <code>flatten</code>ed the left and right branch.  What now?  Well, just append the flattened-left branch to the flattened-right branch and you’re done.</p>
 
-<p>How do you solve a problem like this?  One way is to reason about the kinds of values your tree/list can be, and what your function should do with the tree/list when it assumes those values.  In Scheme, a list can represent a binary tree.  If <code>tr</code> is a tree, then <code>(car tr)</code> gives you the left branch and <code>(cdr tr)</code> gives you the right branch.  So thinking recursively, let&rsquo;s say someone&rsquo;s already <code>flatten</code>ed the left and right branch.  What now?  Well, just append the flattened-left branch to the flattened-right branch and you&rsquo;re done.</p>
-
-<p>I regard trees as being empty, being a leaf, or being a branch with two leaves.  We covered the latter case just above, so let&rsquo;s handle the other two:</p>
+<p>I regard trees as being empty, being a leaf, or being a branch with two leaves.  We covered the latter case just above, so let’s handle the other two:</p>
 
 <ul>
-<li><p>Empty, represented by the empty list <code>()</code>.  What does a flattened empty list look like?  That&rsquo;s right: just the empty list, so return that.</p></li>
-<li><p>A leaf. We want the function to return a list though, so return a list containing this value (i.e., wrap it in parentheses).</p></li>
+  <li>
+    <p>Empty, represented by the empty list <code>()</code>.  What does a flattened empty list look like?  That’s right: just the empty list, so return that.</p>
+  </li>
+  <li>
+    <p>A leaf. We want the function to return a list though, so return a list containing this value (i.e., wrap it in parentheses).</p>
+  </li>
 </ul>
 
-
-<p>That&rsquo;s all three cases!  Here&rsquo;s a naive solution in Common Lisp:</p>
+<p>That’s all three cases!  Here’s a naive solution in Common Lisp:</p>
 
 <pre><code>(defun flatten (tree)
-    (cond ((null tree) nil)
-          ((atom tree) (cons tree nil))
-          (t (append (flatten (car tree))
-                 (flatten (cdr tree))))))
+	(cond ((null tree) nil)
+	      ((atom tree) (cons tree nil))
+	      (t (append (flatten (car tree))
+		         (flatten (cdr tree))))))
 </code></pre>
 
 <p><a href="http://izquotes.com/quote/276282" title="Lisp has all the visual appeal of oatmeal with fingernail clippings mixed in. -Larry Wall">Lisp code, so beautiful!</a> Here, <code>null</code> tests for the empty list and <code>atom</code> tests to see if the tree is a leaf.</p>
 
-<p>This is all well and good, and it satisfies the test cases from SICP. But if you search for other answers to this question, or even look at the definition in <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, there&rsquo;s one that looks a bit different:</p>
+<p>This is all well and good, and it satisfies the test cases from SICP. But if you search for other answers to this question, or even look at the definition in <a href="http://www.paulgraham.com/onlisp.html" title="On Lisp">On Lisp</a>, there’s one that looks a bit different:</p>
 
 <pre><code>(defun flatten (tree)
    (labels ((rec (x acc)
@@ -71,13 +308,13 @@
     (rec tree nil)))
 </code></pre>
 
-<p>Here, <code>labels</code> introduces a local helper function in Common Lisp called <code>rec</code> that takes an accumulator.  Except for this, it appears to be of the same &ldquo;form&rdquo; as the naive solution.  It&rsquo;s not immediately obvious to me how this second solution is equivalent to the first one.  Even though I understood the logic of the second solution, I don&rsquo;t think I would have come up with it on my own, even though I&rsquo;m familiar with the accumulator technique.</p>
+<p>Here, <code>labels</code> introduces a local helper function in Common Lisp called <code>rec</code> that takes an accumulator.  Except for this, it appears to be of the same “form” as the naive solution.  It’s not immediately obvious to me how this second solution is equivalent to the first one.  Even though I understood the logic of the second solution, I don’t think I would have come up with it on my own, even though I’m familiar with the accumulator technique.  </p>
 
-<p>I wanted to not have to be clever.  Even more, I wanted to be able to prove the equivalence of <em>any</em> other version of this function.  What I wanted was to <em>derive</em> these equivalences in the same way I proved theorems in geometry or performed manipulations in algebra.</p>
+<p>I wanted to not have to be clever.  Even more, I wanted to be able to prove the equivalence of <em>any</em> other version of this function.  What I wanted was to <em>derive</em> these equivalences in the same way I proved theorems in geometry or performed manipulations in algebra.  </p>
 
 <p>Enter Haskell.</p>
 
-<p>I had been reading about Haskell here and there, and I appreciated that you could reason about programs, even <em>calculate</em> them.  This is the method described in the book <a href="http://www.amazon.com/Algebra-Programming-Prentice-Hall-International-Computer/dp/013507245X" title="Algebra of Programming">Algebra of Programming</a>, which uses the Gofer language, an ancestor of Haskell.  So I&rsquo;ll recast this in Haskell because its syntax is ultra-clean.  First, let&rsquo;s roll out our own tree data type:</p>
+<p>I had been reading about Haskell here and there, and I appreciated that you could reason about programs, even <em>calculate</em> them.  This is the method described in the book <a href="http://www.amazon.com/Algebra-Programming-Prentice-Hall-International-Computer/dp/013507245X" title="Algebra of Programming">Algebra of Programming</a>, which uses the Gofer language, an ancestor of Haskell.  So I’ll recast this in Haskell because its syntax is ultra-clean.  First, let’s roll out our own tree data type:</p>
 
 <pre><code>data Tree a = Empty | Leaf a | Branch (Tree a) (Tree a)
 </code></pre>
@@ -90,19 +327,19 @@ flatten (Leaf a) = [a]
 flatten (Branch l r) = flatten l ++ flatten r
 </code></pre>
 
-<p>Here, <code>[a]</code> means a list with one value in it, and <code>++</code> means &ldquo;append&rdquo;.  The declaration at the top tells us this function takes a <code>Tree</code> holding values of type <code>a</code> and returns a list.  Here&rsquo;s an example of the function in action:</p>
+<p>Here, <code>[a]</code> means a list with one value in it, and <code>++</code> means “append”.  The declaration at the top tells us this function takes a <code>Tree</code> holding values of type <code>a</code> and returns a list.  Here’s an example of the function in action:</p>
 
 <pre><code>flatten (Branch (Branch (Leaf 2) (Branch (Branch (Leaf 11) (Empty)) (Leaf 7))) (Leaf 4))
 [2,11,7,4]
 </code></pre>
 
-<p>To make this look more like the second solution, let&rsquo;s use the accumulator technique, the benefits of which I&rsquo;ll go over in another post.  So we define a helper function, <code>flat_helper</code>, that takes an accumulator as its second value:</p>
+<p>To make this look more like the second solution, let’s use the accumulator technique, the benefits of which I’ll go over in another post.  So we define a helper function, <code>flat_helper</code>, that takes an accumulator as its second value:</p>
 
 <pre><code>flat_helper :: Tree a -&gt; [a] -&gt; [a]
 flat_helper tree list = flatten tree ++ list
 </code></pre>
 
-<p>We flatten <code>tree</code>, and then push the result onto <code>list</code>. I chose this form to &ldquo;accumulate&rdquo; the result into <code>list</code>.  We can achieve our final result as follows:</p>
+<p>We flatten <code>tree</code>, and then push the result onto <code>list</code>. I chose this form to “accumulate” the result into <code>list</code>.  We can achieve our final result as follows:</p>
 
 <pre><code>flat_helper tree [] = flatten tree ++ [] = flatten tree
 </code></pre>
@@ -135,11 +372,12 @@ flatten l ++ flat_helper r lst =
 flat_helper l (flat_helper r lst)
 </code></pre>
 
-<p>Et voila!  This is the same code from the second solution written in Haskell.  I derived one solution from the other in a way that&rsquo;s almost mathematical.  It turns out that it&rsquo;s more efficient than the naive solution, and we don&rsquo;t even need to use <code>++</code>.  I wish I could learn from programs like this all the time.</p>
+<p>Et voila!  This is the same code from the second solution written in Haskell.  I derived one solution from the other in a way that’s almost mathematical.  It turns out that it’s more efficient than the naive solution, and we don’t even need to use <code>++</code>.  I wish I could learn from programs like this all the time.  </p>
 
 <p>I based the above derivation from a chapter in <a href="http://www.amazon.com/Introduction-Functional-Programming-Haskell-Edition/dp/0134843460/" title="Introduction to Functional Programming in Haskell">Introduction to Functional Programming in Haskell</a>, which has several more derivations like the above (I used their bracket comment notation). They called it <em>synthesizing</em> the program, which is a good way to think about it.</p>
 
-<p>I started out using computers to do work I would find tedious or unfeasible to do on my own&mdash;iterating over millions of variables, or printing a report every hour.  Now I can use them to help me think about computers.  A lot of fun for one problem in SICP, I&rsquo;d say!</p>
+<p>I started out using computers to do work I would find tedious or unfeasible to do on my own–iterating over millions of variables, or printing a report every hour.  Now I can use them to help me think about computers.  A lot of fun for one problem in SICP, I’d say!</p>
+
 ]]></content>
   </entry>
   
