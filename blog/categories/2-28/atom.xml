@@ -4,7 +4,7 @@
   <title><![CDATA[Category: 2-28 | Stack Unwinding]]></title>
   <link href="http://chrislambda.github.io/blog/categories/2-28/atom.xml" rel="self"/>
   <link href="http://chrislambda.github.io/"/>
-  <updated>2014-02-01T22:21:17-05:00</updated>
+  <updated>2014-02-01T22:49:00-05:00</updated>
   <id>http://chrislambda.github.io/</id>
   <author>
     <name><![CDATA[Chris Jones]]></name>
@@ -18,32 +18,26 @@
     <link href="http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating/"/>
     <updated>2014-01-20T17:18:10-05:00</updated>
     <id>http://chrislambda.github.io/blog/2014/01/20/from-coding-to-calculating</id>
-    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I’ll do some of the exercises and search online to see how my answers compared to others’.  </p>
+    <content type="html"><![CDATA[<p>Like many aspiring software developers and computer scientists, I wanted to improve my art by going through <a href="http://mitpress.mit.edu/sicp/full-text/book/book.html" title="SICP">Structure and Interpretation of Computer Programs</a>.  I fully expected to emerge from it all with Sherlock Holmes-esque abilities in programming.  Yeah, that was about 7 years ago.  Still, every so often, I’ll do some of the exercises and search online to see how my answers compared to others’.</p>
+
+<!--more-->
 
 <p>Because I didn’t spend a ton of time on these problems, I usually only implemented a naive solution and could only marvel at others’ much cooler, more clever, more efficient solutions.  But I could never be sure if they were equivalent.  <strong>Or could I?</strong> </p>
 
-<p>Here’s the example that inspired me to write this post, from SICP:
-&gt; <strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
+<p>Here’s the example that inspired me to write this post, from SICP:</p>
 
 <blockquote>
-  <p>(define x (list (list 1 2) (list 3 4)))</p>
+  <p><strong>Exercise 2.28.</strong>  Write a procedure <code>fringe</code> that takes as argument a tree (represented as a list) and returns a list whose elements are all the leaves of the tree arranged in left-to-right order. For example,</p>
 </blockquote>
 
-<blockquote>
-  <p>(fringe x)</p>
-</blockquote>
+<pre><code>(define x (list (list 1 2) (list 3 4)))
 
-<blockquote>
-  <p>(1 2 3 4)</p>
-</blockquote>
+(fringe x)
+;; equals (1 2 3 4)
 
-<blockquote>
-  <p>(fringe (list x x))</p>
-</blockquote>
-
-<blockquote>
-  <p>(1 2 3 4 1 2 3 4)</p>
-</blockquote>
+(fringe (list x x))
+;; equals (1 2 3 4 1 2 3 4)
+</code></pre>
 
 <p>If you’re not a Scheme user, this function takes something that looks like <code>((1 2) (3 4))</code> and gives something that looks like <code>(1 2 3 4)</code>.  It “gets the numbers out of the parentheses”.  The nifty thing about this function is that it will do this for arbitrarily-nested trees, not just one level deep.</p>
 

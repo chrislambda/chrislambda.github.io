@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Category | Stack Unwinding]]></title>
+  <title><![CDATA[Category: category | Stack Unwinding]]></title>
   <link href="http://chrislambda.github.io/blog/categories/category/atom.xml" rel="self"/>
   <link href="http://chrislambda.github.io/"/>
-  <updated>2014-02-01T22:21:17-05:00</updated>
+  <updated>2014-02-01T22:49:00-05:00</updated>
   <id>http://chrislambda.github.io/</id>
   <author>
     <name><![CDATA[Chris Jones]]></name>
@@ -18,11 +18,13 @@
     <link href="http://chrislambda.github.io/blog/2014/01/30/catamorphisms-in-15-minutes/"/>
     <updated>2014-01-30T20:53:57-05:00</updated>
     <id>http://chrislambda.github.io/blog/2014/01/30/catamorphisms-in-15-minutes</id>
-    <content type="html"><![CDATA[<p>Let’s say you have a list of numbers.  What can you do with it?  Find its length, map a function over it, add them up, etc. Wouldn’t it be great if there were <em>one function to rule them all</em>, a function that generalizes what you can do with a list?  In many languages, there is a higher-order function called <code>fold</code> that encapsulates a pattern of <strong>structural recursion</strong> over recursive structures: to specify a function on a list, you specify two exhaustive cases: what to do to an empty list, and what to do with any other list.  A generalization of <em>this</em> generalization is the notion of a catamorphism, which is what I’m writing about today.  </p>
+    <content type="html"><![CDATA[<p>Let’s say you have a list of numbers.  What can you do with it?  Find its length, map a function over it, add them up, etc. Wouldn’t it be great if there were <em>one function to rule them all</em>, a function that generalizes what you can do with a list?  In many languages, there is a higher-order function called <code>fold</code> that encapsulates a pattern of <strong>structural recursion</strong> over recursive structures: to specify a function on a list, you specify two exhaustive cases: what to do to an empty list, and what to do with any other list.  A generalization of <em>this</em> generalization is the notion of a catamorphism, which is what I’m writing about today.</p>
+
+<!--more-->
 
 <p>Since catamorphisms are so general, this is really going to be a whirlwind tour through category theory, winding up talking about catas near the end.  This is all non-rigorous and hand-wavey, but I hope you can at least hear these concepts later and they make a little bit of sense.</p>
 
-<p>There are many resources about <code>fold</code> (see <a href="http://www.cs.nott.ac.uk/~gmh/fold.pdf" title="A tutorial on the universality and expressiveness of fold">Graham Hutton’s tutorial</a> and catamorphisms (see, for example, <a href="https://www.fpcomplete.com/user/edwardk/recursion-schemes/catamorphisms" title="Edward Kmett's knol">Edward Kmett’s knol</a>).  I wanted to slightly expand on some elementary details from these works.  So let’s jump in!</p>
+<p>There are many resources about <code>fold</code> (see <a href="http://www.cs.nott.ac.uk/~gmh/fold.pdf" title="A tutorial on the universality and expressiveness of fold">Graham Hutton’s tutorial</a>) and catamorphisms (see, for example, <a href="https://www.fpcomplete.com/user/edwardk/recursion-schemes/catamorphisms" title="Edward Kmett's knol">Edward Kmett’s knol</a>).  I wanted to slightly expand on some elementary details from these works.  So let’s jump in!</p>
 
 <h3 id="the-shortest-category-theory-tutorial-in-the-world">The Shortest Category Theory Tutorial in the World</h3>
 
